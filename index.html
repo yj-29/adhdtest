@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ADHD TEST</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#fdfdfd; --fg:#111; --muted:#555;
+  --frame-gap: clamp(18px, 3vw, 28px);
+  --word-size: clamp(80px, 23vw, 320px);
+  --idle-dur: 3s;
+  --burst-dur: 900ms;
+  --stagger: 32ms;
+
+  /* flat red */
+  --red-core: rgba(230,0,35,.85);
+  --red-mid:  rgba(230,0,35,.55);
+  --red-edge: rgba(230,0,35,.22);
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ height:100%; }
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:"BBH Sans Bartle", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+}
+
+/* Inset frame hugging the corners */
+.frame{
+  position:fixed; inset:var(--frame-gap);
+  border:1px solid #000; pointer-events:none; z-index:3;
+}
+
+/* ===== FLAT RED DOT BLINKS ===== */
+.blink-layer{
+  position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden;
+}
+
+/* 평면 그라데이션 점 (윤곽/그림자 없음) */
+.dot{
+  position:absolute; border-radius:50%;
+  background:
+    radial-gradient(circle,
+      var(--red-core) 0%,
+      var(--red-mid) 46%,
+      var(--red-edge) 76%,
+      rgba(230,0,35,0) 100%);
+  opacity:0;
+  transform:scale(.85);
+  animation: dotBlink .66s ease-out forwards; /* 빠른 속도 유지 */
+}
+
+/* 크기(이전과 동일, 크게 유지) */
+.dot.s{ width:18px; height:18px; }
+.dot.m{ width:26px; height:26px; }
+.dot.l{ width:34px; height:34px; }
+
+@keyframes dotBlink{
+  0%   { opacity:0;   transform:scale(.6); }
+  25%  { opacity:.75; transform:scale(1.06); }
+  52%  { opacity:.95; transform:scale(1); }
+  100% { opacity:0;   transform:scale(.92); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .dot{ animation-duration:.48s; }
+}
+
+/* ===== Content ===== */
+.header{
+  position:fixed; top:var(--frame-gap); left:var(--frame-gap); right:var(--frame-gap);
+  display:flex; justify-content:space-between; gap:16px;
+  font-size:clamp(12px,1.2vw,14px); color:var(--muted);
+  z-index:4; line-height:1.6;
+}
+.header .left{ text-align:left; }
+.header .right{ text-align:right; }
+
+.main{
+  z-index:4; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap: clamp(4px, 4vh, 28px);
+}
+
+/* big words */
+.word{
+  display:inline-flex; gap:.02em; user-select:none;
+  font-weight:800; letter-spacing:-0.02em;
+  font-size:var(--word-size); line-height:.92;
+  transform-origin:center;
+  animation: idleJitter var(--idle-dur) ease-in-out infinite alternate;
+}
+.word span{
+  display:inline-block; will-change: transform, opacity, filter;
+  --dx:0px; --dy:0px; --rot:0deg; --delay:0ms;
+}
+.word.burst span{
+  animation: letterBurst var(--burst-dur) cubic-bezier(.25,.8,.25,1) var(--delay) both;
+}
+@keyframes idleJitter{
+  0%{transform:translate(0,0) rotate(0) scale(1)}
+  25%{transform:translate(2px,-2px) rotate(-.3deg) scale(1.01)}
+  50%{transform:translate(-2px,2px) rotate(.3deg) scale(.995)}
+  75%{transform:translate(1px,-1px) rotate(-.2deg) scale(1.01)}
+  100%{transform:translate(0,0) rotate(0) scale(1)}
+}
+@keyframes letterBurst{
+  0%{transform:translate(0,0) rotate(0) scale(1); opacity:1; filter:blur(0)}
+  40%{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(1.06); opacity:.85; filter:blur(2px)}
+  60%{transform:translate(calc(var(--dx)*.75),calc(var(--dy)*.75)) rotate(calc(var(--rot)*.75)) scale(1.02); opacity:.9; filter:blur(1px)}
+  100%{transform:translate(0,0) rotate(0) scale(1); opacity:1; filter:blur(0)}
+}
+
+.hint{ font-size:12px; color:#888; margin-top:4px; user-select:none; }
+@media (prefers-reduced-motion: reduce){
+  :root{ --idle-dur:1ms; --burst-dur:1ms; --stagger:0ms; }
+  .hint{ display:none; }
+}
+
+/* bottom CTA */
+.go-btn{
+  position:fixed; left:50%; bottom:calc(var(--frame-gap) + 30px);
+  transform: translateX(-50%) translateY(18px);
+  min-width:180px; height:48px; padding:0 18px; border-radius:10px;
+  background:rgba(230,0,35,1); color:#fff; font-weight:800; letter-spacing:.05em; font-size:18px;
+  display:flex; align-items:center; justify-content:center; text-transform:uppercase;
+  text-decoration:none; box-shadow:0 8px 22px rgba(230,0,35,.28);
+  opacity:0; pointer-events:none; z-index:4; border:1px solid #fff0;
+  transition: opacity .35s ease, transform .35s ease, box-shadow .2s ease;
+}
+.go-btn.show{ opacity:1; pointer-events:auto; transform: translateX(-50%) translateY(0); }
+.go-btn:active{ transform: translateX(-50%) translateY(2px); box-shadow:0 4px 14px rgba(230,0,35,.32); }
+</style>
+</head>
+<body>
+
+<!-- Inset frame -->
+<div class="frame" aria-hidden="true"></div>
+
+<!-- FLAT red filled gradient dots -->
+<div class="blink-layer" id="blinkLayer" aria-hidden="true"></div>
+
+<!-- Top info -->
+<div class="header" aria-label="ADHD information header">
+  <div class="left">
+    <strong>Attention-Deficit/Hyperactivity Disorder (ADHD)</strong><br>
+    Neurodevelopmental disorder involving persistent inattention and/or hyperactivity-impulsivity.
+  </div>
+  <div class="right">
+    DSM-5-TR · Onset in childhood · Symptoms present in ≥2 settings ·<br>
+    Clinically significant impairment in social, academic, or occupational functioning.
+  </div>
+</div>
+
+<main class="main" id="stage" title="클릭하면 각 글자가 개별적으로 움직입니다">
+  <div class="word" id="w1" aria-label="ADHD"></div>
+  <div class="word" id="w2" aria-label="TEST"></div>
+  <div class="hint">Click anywhere to trigger per-letter motion</div>
+</main>
+
+<a href="test.html" class="go-btn" id="goBtn" role="link" aria-label="Go to test.html">GO</a>
+
+<script>
+/* ===== Words build & burst (기존 유지) ===== */
+const root = document.documentElement;
+const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+function buildWord(el, text){
+  el.innerHTML = '';
+  [...text].forEach((ch, i)=>{
+    const s = document.createElement('span');
+    s.textContent = ch;
+    s.style.setProperty('--delay', `${i * parseInt(getComputedStyle(root).getPropertyValue('--stagger'))}ms`);
+    el.appendChild(s);
+  });
+}
+function burstWord(el){
+  const spans = [...el.querySelectorAll('span')];
+  spans.forEach((sp,i)=>{
+    const r = Math.random()*Math.PI*2;
+    const dist = clamp(Math.random()*120+20,30,160);
+    const dx = Math.cos(r)*dist;
+    const dy = Math.sin(r)*dist;
+    const rot = (Math.random()*40-20);
+    sp.style.setProperty('--dx', dx.toFixed(1)+'px');
+    sp.style.setProperty('--dy', dy.toFixed(1)+'px');
+    sp.style.setProperty('--rot', rot.toFixed(1)+'deg');
+    const baseDelay = i * parseInt(getComputedStyle(root).getPropertyValue('--stagger'));
+    const jitter = Math.floor(Math.random()*40);
+    sp.style.setProperty('--delay', `${baseDelay + jitter}ms`);
+  });
+  el.classList.remove('burst');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('burst')));
+}
+const w1 = document.getElementById('w1');
+const w2 = document.getElementById('w2');
+buildWord(w1, 'ADHD');
+buildWord(w2, 'TEST');
+
+let cooling = false;
+let clickCount = 0;
+const goBtn = document.getElementById('goBtn');
+function trigger(){
+  if (cooling) return;
+  cooling = true;
+  burstWord(w1);
+  burstWord(w2);
+  setTimeout(()=> cooling=false, 1200);
+}
+document.body.addEventListener('click', (e)=>{
+  if (e.target.closest('#goBtn')) return;
+  clickCount += 1;
+  if (clickCount === 2) goBtn.classList.add('show');
+  trigger();
+});
+
+/* ===== Even Fewer, Larger Filled-dot System ===== */
+class RedDotSystem{
+  constructor(){
+    this.layer = document.getElementById('blinkLayer');
+    this.timer = null;
+    this.active = 0;
+    this.maxActive = 3;           // ▶ 더 줄임: 한 번에 최대 3개
+    this.spawnEvery = 90;         // 속도 유지
+    this.recent = [];
+    this.recentKeep = 10;
+    this.minDist = 160;           // 간격 더 넓게
+    this.margin = 14;
+
+    this.scaleForPerf();
+    this.start();
+    addEventListener('resize', ()=>this.scaleForPerf(), {passive:true});
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches){
+      this.spawnEvery = 140;
+      this.maxActive  = 2;
+      this.minDist    = 180;
+    }
+  }
+
+  scaleForPerf(){
+    const area = innerWidth * innerHeight;
+    if (area < 600*800){ this.maxActive = 3; }
+    if (area < 420*740){ this.maxActive = 2; }
+  }
+
+  start(){
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(()=> this.spawn(), this.spawnEvery);
+  }
+
+  spawn(){
+    if (this.active >= this.maxActive) return;
+
+    const {x, y} = this.samplePosition();
+
+    const node = document.createElement('div');
+    node.className = 'dot';
+    // 큰 점 위주
+    const r = Math.random();
+    const sizeClass = r < 0.7 ? 'l' : (r < 0.9 ? 'm' : 's');
+    node.classList.add(sizeClass);
+
+    node.style.left = `${x}px`;
+    node.style.top  = `${y}px`;
+    node.style.animationDelay = `${Math.floor(Math.random()*80)}ms`;
+    node.style.animationDuration = `${(0.62 + Math.random()*0.14).toFixed(2)}s`;
+
+    this.layer.appendChild(node);
+    this.active++;
+    this.recent.push({x,y});
+    if (this.recent.length > this.recentKeep) this.recent.shift();
+
+    node.addEventListener('animationend', ()=>{
+      node.remove();
+      this.active = Math.max(0, this.active - 1);
+    }, {once:true});
+  }
+
+  samplePosition(){
+    const w = innerWidth, h = innerHeight, m = this.margin;
+    let tries = 0;
+    while (tries < 24){
+      const x = m + Math.random() * (w - m*2);
+      const y = m + Math.random() * (h - m*2);
+      if (this.isFarFromRecent(x,y)) return {x,y};
+      tries++;
+    }
+    return { x: m + Math.random() * (w - m*2), y: m + Math.random() * (h - m*2) };
+  }
+
+  isFarFromRecent(x,y){
+    for (const p of this.recent){
+      const dx = x - p.x, dy = y - p.y;
+      if ((dx*dx + dy*dy) < this.minDist*this.minDist) return false;
+    }
+    // 코너 과밀 완화
+    const edge = 32;
+    if ((x < edge && y < edge) ||
+        (x > innerWidth-edge && y < edge) ||
+        (x < edge && y > innerHeight-edge) ||
+        (x > innerWidth-edge && y > innerHeight-edge)) return false;
+    return true;
+  }
+}
+
+addEventListener('DOMContentLoaded', ()=> {
+  new RedDotSystem();
+});
+</script>
+</body>
+</html>

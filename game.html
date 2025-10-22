@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ADHD GAME-BASED TEST</title>
+
+<!-- 영어 웹폰트 (영문 타이틀용) -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&display=swap" rel="stylesheet"/>
+
+<!-- 한글 폰트 -->
+<style>
+@font-face{
+  font-family:'KakaoBigFont';
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Regular.woff2') format('woff2');
+  font-weight:400; font-display:swap;
+}
+@font-face{
+  font-family:'KakaoBigFont';
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Bold.woff2') format('woff2');
+  font-weight:700; font-display:swap;
+}
+@font-face{
+  font-family:'KakaoBigFont';
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-ExtraBold.woff2') format('woff2');
+  font-weight:800; font-display:swap;
+}
+
+/* ===== Design Tokens ===== */
+:root{
+  --bg-outside:#f6f3ec;    /* 프레임 바깥 미색 */
+  --bg:#ffffff;            /* 프레임 안 화이트 */
+  --fg:#0e0e0f;            /* 본문 블랙 */
+  --muted:#4a4a55;         /* 보조 텍스트 */
+  --line:#111111;          /* 프레임 라인 */
+  --soft-line:#d9d7d2;     /* 내부 라인 */
+  --accent:#d21c1c;        /* 포인트 레드 */
+  --hairline:1px;
+  --frame-gap:clamp(10px,2.2vw,16px); /* 화면 모서리와 프레임 거리(작게) */
+  --content-pad:clamp(14px,2.4vmin,26px);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg-outside);
+  color:var(--fg);
+  font-family:'KakaoBigFont', system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans KR', sans-serif;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+}
+
+/* ===== 화면을 감싸는 인셋 테두리 ===== */
+.frame{
+  position:fixed; inset:var(--frame-gap);        /* 첨부 샘플처럼 모서리와 가깝게 */
+  border:1.5px solid var(--line);
+  pointer-events:none; z-index:10;
+  border-radius:2px;
+}
+
+/* 코너 디자인 요소 */
+.corner{
+  position:fixed; z-index:11; width:16px; height:16px;
+  border:1px solid var(--line); background:transparent;
+}
+.corner.tl{left:calc(var(--frame-gap) - 1px); top:calc(var(--frame-gap) - 1px); border-right:none; border-bottom:none;}
+.corner.tr{right:calc(var(--frame-gap) - 1px); top:calc(var(--frame-gap) - 1px); border-left:none; border-bottom:none;}
+.corner.bl{left:calc(var(--frame-gap) - 1px); bottom:calc(var(--frame-gap) - 1px); border-right:none; border-top:none;}
+.corner.br{right:calc(var(--frame-gap) - 1px); bottom:calc(var(--frame-gap) - 1px); border-left:none; border-top:none;}
+
+/* ===== 레이아웃 래퍼 ===== */
+.wrap{
+  min-height:100svh;
+  /* 프레임과 겹치지 않도록 상하 좌우 패딩 확보 + 균형 있는 내부 여백 */
+  padding:calc(var(--frame-gap) + 6px) clamp(18px, 4vw, 56px) clamp(var(--frame-gap), 3vh, 32px);
+  display:grid;
+  grid-template-rows:auto auto auto 1fr auto;
+  gap:clamp(12px, 2.2vmin, 18px);
+  background:var(--bg);
+  justify-items:center;
+}
+
+/* ===== 헤더 ===== */
+.header{
+  width:min(100%, 1200px); /* 헤더 가로 공간 확장 */
+  display:grid;
+  gap:6px;
+  text-align:center;
+  position:relative;
+}
+
+/* 상단 배지 */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 12px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  font-size:clamp(10px, 1.4vmin, 12px);
+  background:#fff;
+  font-weight:700;
+  letter-spacing:.02em;
+  margin:0 auto clamp(8px, 1.5vmin, 16px) auto;
+}
+
+/* 왼쪽 상단 고정 배지 */
+.badge-top-left{
+  position:fixed;
+  top:calc(var(--frame-gap) + 16px);
+  left:calc(var(--frame-gap) + 16px);
+  margin:0;
+  z-index:15;
+  box-shadow:2px 2px 0 rgba(0,0,0,0.1);
+}
+.badge .dot{
+  width:6px;
+  height:6px;
+  background:var(--accent);
+  border-radius:50%;
+}
+
+/* 상단 보조 문구 (kicker) – 제목의 절반 정도 크기, 블랙, 거의 붙게 */
+.kicker{
+  font-weight:800;
+  color:var(--fg);
+  font-size:clamp(22px, 4.6vmin, 34px);
+  line-height:1;
+  letter-spacing:.01em;
+  margin-top:clamp(20px, 3.5vmin, 32px); /* 위쪽 여백 대폭 증가 */
+  margin-bottom:clamp(8px, 1.5vmin, 12px); /* 제목과의 여백 조정 */
+}
+
+/* 메인 타이틀 */
+.title{
+  font-family:"BBH Sans Bartle",'KakaoBigFont',sans-serif;
+  font-weight:900;
+  font-size:clamp(48px, 9.2vmin, 100px);
+  line-height:0.9; /* 두 줄 제목을 위한 줄 간격 */
+  letter-spacing:.01em;
+  text-transform:uppercase;
+  margin:0;
+  max-width:1200px; /* 제목 가로 공간 확장 */
+  width:100%;
+}
+
+/* 설명 */
+.subtitle{
+  font-size:clamp(14px, 1.9vmin, 18px);
+  color:var(--muted);
+  line-height:1.55;
+  margin-top:clamp(8px, 1.5vmin, 12px); /* 제목과의 여백 증가 */
+}
+
+/* 구분 라인 */
+.rule{
+  width:min(100%, 1040px);
+  height:var(--hairline);
+  background:linear-gradient(90deg, transparent, var(--soft-line), transparent);
+  margin:4px 0 2px 0;
+  position:relative;
+}
+.rule::before{
+  content:'';
+  position:absolute;
+  top:-1px;
+  left:50%;
+  transform:translateX(-50%);
+  width:60px;
+  height:3px;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity:0.6;
+}
+
+/* ===== 게임 그리드 (기존 2열 레이아웃 유지) ===== */
+.grid{
+  width:min(100%, 1040px);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:clamp(48px, 8vmin, 80px); /* 간격 대폭 증가 (2배 이상) */
+  align-items:start;
+}
+
+/* 게임 카드 */
+.card{
+  background:var(--bg);
+  border:var(--hairline) solid var(--soft-line);
+  border-radius:14px;
+  padding:clamp(12px, 1.8vmin, 14px);
+  display:grid; gap:8px; text-align:center;
+  transition:all 0.2s ease;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  border-color:var(--accent);
+}
+
+/* 번호 + 라벨 */
+.num{
+  font-weight:800;
+  font-size:clamp(11px, 1.5vmin, 13px);
+  color:var(--accent);
+  letter-spacing:.06em;
+}
+.label{
+  font-weight:800;
+  font-size:clamp(16px, 2.2vmin, 20px);
+}
+
+/* 이미지 프레임 */
+.media{
+  border:var(--hairline) dashed var(--soft-line);
+  border-radius:10px;
+  overflow:hidden;
+}
+.media img{ width:100%; height:auto; display:block }
+.media a{
+  display:block;
+  transition:transform 0.2s ease;
+}
+.media a:hover{
+  transform:scale(1.02);
+}
+
+/* ===== 주의사항 – GIF 아래, 좀 더 위로 ===== */
+.disclaimer{
+  width:min(100%, 900px);
+  margin-top:clamp(6px, 1vmin, 10px);
+  text-align:center;
+  color:var(--accent);
+  font-size:clamp(11px, 1.6vmin, 12px);
+  line-height:1.65;
+}
+.disclaimer b{
+  display:block;
+  font-weight:800;
+  font-size:clamp(13px, 1.9vmin, 15px);
+  margin-bottom:4px;
+}
+
+/* ===== 체크리스트로 돌아가기 버튼 ===== */
+.back-to-checklist{
+  position:fixed;
+  right:calc(var(--frame-gap) + 20px);
+  bottom:calc(var(--frame-gap) + 20px);
+  padding:clamp(12px, 2.2vmin, 16px) clamp(18px, 3.2vmin, 24px);
+  background:#666;
+  color:#fff;
+  border:2px solid var(--line);
+  border-radius:14px;
+  font-family:'KakaoBigFont', system-ui, sans-serif;
+  font-weight:800;
+  font-size:clamp(13px, 2vmin, 15px);
+  text-decoration:none;
+  cursor:pointer;
+  z-index:90;
+  box-shadow:3px 3px 0 var(--line);
+  transition:transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  letter-spacing:0.02em;
+}
+.back-to-checklist:hover{
+  background:#555;
+  transform:translateY(-2px);
+  box-shadow:4px 4px 0 var(--line);
+}
+.back-to-checklist:active{
+  transform:translateY(1px);
+  box-shadow:2px 2px 0 var(--line);
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 860px){
+  .grid{ grid-template-columns:1fr; }
+  .back-to-checklist{
+    right:calc(var(--frame-gap) + 16px);
+    bottom:calc(var(--frame-gap) + 16px);
+    padding:10px 14px;
+    font-size:12px;
+  }
+  .badge-top-left{
+    top:calc(var(--frame-gap) + 12px);
+    left:calc(var(--frame-gap) + 12px);
+    font-size:10px;
+    padding:4px 8px;
+  }
+}
+</style>
+</head>
+<body>
+  <!-- 화면 모서리와 가까운 라인 프레임 -->
+  <div class="frame" aria-hidden="true"></div>
+  
+  <!-- 코너 디자인 요소 -->
+  <div class="corner tl" aria-hidden="true"></div>
+  <div class="corner tr" aria-hidden="true"></div>
+  <div class="corner bl" aria-hidden="true"></div>
+  <div class="corner br" aria-hidden="true"></div>
+
+  <!-- 상단 배지 -->
+  <div class="badge badge-top-left">
+    <div class="dot"></div>
+    <span>GAME-BASED ASSESSMENT</span>
+  </div>
+
+  <main class="wrap">
+    <!-- 헤더 -->
+    <header class="header">
+      <div class="kicker">체크리스트 테스트가 힘들다면</div>
+      <h1 class="title">ADHD GAME -<br>BASED TEST</h1>
+      <p class="subtitle">
+        아래 게임들은 얼굴과 손 움직임을 이용하여 집중과 억제 반응을 체크하는
+        신체참여형(Body-based) 주의 게임입니다.<br>빠른 자극과 즉각 보상에 의존하는 모바일 게임과 달리, 감각-운동 통합을 통해 사용자가 자신의 주의 흐름을 직접 인식하고 조절하도록 합니다.
+      </p>
+    </header>
+
+    <div class="rule" aria-hidden="true"></div>
+
+    <!-- 게임 미리보기 (기존 레이아웃 유지) -->
+    <section class="grid" aria-label="게임 미리보기">
+      <article class="card">
+        <div class="num">01</div>
+        <div class="label">집중 : 얼굴 블록깨기</div>
+        <div class="media">
+          <a href="game1.html">
+            <img src="game1.gif" alt="얼굴 움직임으로 블록을 깨는 집중 훈련 게임 미리보기">
+          </a>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="num">02</div>
+        <div class="label">반응 억제 : 손 들기</div>
+        <div class="media">
+          <a href="game2.html">
+            <img src="game2.gif" alt="손 들기 동작으로 반응을 억제하는 게임 미리보기">
+          </a>
+        </div>
+      </article>
+    </section>
+
+    <!-- 디스클레이머 -->
+    <footer class="disclaimer" role="note" aria-label="주의사항">
+      <b>주의사항 (Disclaimer)</b>
+      이 게임은 얼굴 움직임을 이용한 주의·반응 조절 체험용 도구로, ADHD 진단이나 평가를 위한 의료 검사가 아닙니다.<br>
+      결과는 개인의 순발력·운동 능력·환경·우연적 요인에 따라 달라질 수 있으며, 정확한 임상 지표로 해석해서는 안 됩니다.<br>
+      다만, 자신의 주의 집중 패턴과 반응 조절 경향을 이해하는 데 참고가 될 수 있습니다.<br>
+      집중 문제로 일상에 어려움이 지속된다면 전문가 상담을 권장합니다.
+    </footer>
+  </main>
+
+  <!-- 체크리스트로 돌아가기 버튼 -->
+  <a href="test.html" class="back-to-checklist" aria-label="체크리스트로 돌아가기">체크리스트로 돌아가기</a>
+</body>
+</html>

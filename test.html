@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ADHD CHECKLIST TEST</title>
+
+<!-- 영어 웹폰트 (영문 타이틀용) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BBH+Sans+Bartle&display=swap" rel="stylesheet">
+
+<!-- 한글 폰트 -->
+<style>
+@font-face {
+  font-family: 'KakaoBigFont';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Regular.woff2') format('woff2');
+  font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: 'KakaoBigFont';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-Bold.woff2') format('woff2');
+  font-weight: 700; font-display: swap;
+}
+@font-face {
+  font-family: 'KakaoBigFont';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/KakaoBigSans-ExtraBold.woff2') format('woff2');
+  font-weight: 800; font-display: swap;
+}
+</style>
+
+<style>
+:root{
+  --bg:#ffffff;
+  --fg:#111;
+  --muted:#666;
+  --beige:#faf7f0;
+  --line:#111;
+  --frame-gap:clamp(16px,3vw,28px);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:'KakaoBigFont', system-ui, -apple-system, Segoe UI, Roboto, 'Noto Sans KR', sans-serif;
+}
+
+/* 인셋 프레임 */
+.frame{
+  position:fixed; inset:var(--frame-gap);
+  border:1px solid var(--line); pointer-events:none; z-index:5;
+}
+
+/* 래퍼 */
+.wrap{
+  min-height:100svh;
+  padding:calc(var(--frame-gap) + 8px) clamp(14px,4vw,64px);
+  display:grid; gap:22px;
+}
+
+/* 상단 타이틀 */
+.eng-title{
+  font-family:"BBH Sans Bartle", system-ui, sans-serif;
+  font-weight:800;
+  font-size:clamp(42px, 10vw, 96px); /* 한글 타이틀의 약 2배 */
+  line-height:.95;
+  letter-spacing:-0.01em;
+  text-align:center;
+  border-bottom:1px solid var(--line);
+  padding-bottom:10px;
+  position:relative;
+}
+.eng-title::after{
+  content:'';
+  position:absolute;
+  bottom:-2px;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  height:1px;
+  background:var(--line);
+}
+.header{
+  display:grid; gap:6px;
+  border-bottom:1px solid var(--line);
+  padding:12px 0 14px 0;
+  text-align:center;
+}
+.title{
+  font-weight:800; font-size:clamp(24px,5vw,44px); letter-spacing:-0.01em;
+}
+.subtitle{
+  font-weight:400; color:var(--muted); font-size:clamp(13px,2.4vw,16px);
+}
+
+/* 질문 카드 공통 */
+.q{
+  border-bottom:1px solid var(--line);
+  padding: clamp(12px, 2.2vh, 18px) 0;
+  display:grid; gap: clamp(14px, 2.2vh, 20px);
+  opacity:0; transform: translateY(12px);
+  animation: fadeUp .7s ease forwards;
+}
+.q .qlabel{
+  display:flex; align-items:flex-start; gap:10px;
+  font-weight:700; font-size: clamp(14px, 2.6vw, 18px);
+  line-height:1.5;
+}
+.q .meta-line{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  color:var(--muted); font-size:12px;
+}
+
+/* 5점 라디오 스케일 */
+.scale{
+  display:flex; align-items:center; justify-content:center; gap: clamp(18px, 6vw, 60px);
+}
+.scale .end{
+  min-width:78px; text-align:center; font-size:clamp(12px,2.4vw,14px); color:var(--muted);
+}
+.radios{
+  display:flex; align-items:center; gap:clamp(18px, 5vw, 42px);
+}
+
+/* 위치별 크기/강조(양끝이 가장 큼/강조) */
+.radio{
+  --size:56px;           /* 기본 */
+  --border:3px;
+  --accent:#e36a6a;      /* 기본 채움 */
+  width:var(--size); height:var(--size);
+  border-radius:50%;
+  border:var(--border) solid #bdbdbd;
+  display:grid; place-items:center;
+  cursor:pointer; position:relative; transition:border .2s ease, transform .08s ease, box-shadow .2s ease;
+  background:#fff;
+}
+.radio[data-pos="1"], .radio[data-pos="5"]{ --size:68px; --border:4px; }  /* 끝단 가장 큼 */
+.radio[data-pos="2"], .radio[data-pos="4"]{ --size:60px; }
+.radio[data-pos="3"]{ --size:52px; } /* 중앙 가장 작음 */
+
+.radio:active{ transform:scale(.98) }
+.radio input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+/* hover 강조: 끝단 더 강하게 */
+.radio[data-pos="1"]:hover, .radio[data-pos="5"]:hover{ border-color:#8a8a8a; box-shadow:0 0 0 2px rgba(0,0,0,.06) }
+.radio:hover{ border-color:#9d9d9d }
+
+/* 선택 상태: 위치별로 붉은 채움 명도/채도 차등 */
+.radio[data-pos="1"]{ --accent:#c91818; }  /* 선명(진) */
+.radio[data-pos="2"]{ --accent:#de4d4d; }
+.radio[data-pos="3"]{ --accent:#ee9a9a; }  /* 가장 옅음 */
+.radio[data-pos="4"]{ --accent:#de4d4d; }
+.radio[data-pos="5"]{ --accent:#c91818; }  /* 선명(진) */
+
+.radio input:checked + .ring{
+  /* 중앙은 옅고, 끝단은 진하게 채워짐 */
+  box-shadow: inset 0 0 0 6px var(--bg), inset 0 0 0 999px var(--accent);
+  border-color: var(--accent);
+}
+
+.ring{
+  pointer-events:none;
+  width:100%; height:100%; border-radius:50%;
+  border:var(--border) solid currentColor; color:inherit;
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+
+/* Q3 강조 블록 */
+.q.emph{
+  background: var(--beige);
+  border: 2px solid var(--line);
+  padding: clamp(18px, 3.2vh, 28px);
+  box-shadow: 4px 4px 0 var(--line), 0 0 0 1px rgba(0,0,0,0.1);
+  border-radius:8px;
+  position:relative;
+}
+.q.emph::before{
+  content:'';
+  position:absolute;
+  top:-4px;
+  left:-4px;
+  right:-4px;
+  bottom:-4px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  opacity:0.3;
+  z-index:-1;
+}
+.q.emph .qlabel{
+  font-size: clamp(20px, 4.2vw, 28px);
+  color:#000;
+  font-weight:800;
+}
+.binary{
+  display:flex; justify-content:center; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.binbtn{
+  min-width:120px; height:56px; padding:0 18px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  border:1px solid var(--line); background:#fff; cursor:pointer;
+  font-weight:700; font-size:16px; border-radius:12px; transition:transform .08s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+  text-decoration:none; color:#000;
+}
+.binbtn:active{ transform:translateY(1px) }
+.binbtn[data-value="yes"].active,
+.binbtn[data-value="yes"]:hover{ background: #e60023; color:#fff; box-shadow: 2px 2px 0 var(--line); }
+.binbtn[data-value="no"].active,
+.binbtn[data-value="no"]:hover{ background:#000; color:#fff; box-shadow: 2px 2px 0 var(--line); }
+
+/* 하단 제출 영역 */
+.footer{
+  position:sticky; bottom:0; background:linear-gradient(180deg, rgba(255,255,255,.0), #fff 60%);
+  padding-top:14px;
+}
+.actions{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border-top:1px solid var(--line); padding-top:12px;
+}
+.hint{ color:var(--muted); font-size:12px; }
+.btn{
+  appearance:none; border:1px solid var(--line); background:#fff; color:#000;
+  padding:14px 18px; border-radius:12px; font-weight:800; cursor:pointer;
+  transition:transform .08s ease, background .2s ease, color .2s ease, box-shadow .2s ease;
+}
+.btn.primary{ background:#e60023; color:#fff; box-shadow: 2px 2px 0 var(--line); }
+.btn:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none }
+.btn:active:not(:disabled){ transform:translateY(1px) }
+
+/* 결과 화면 */
+.result{
+  position:fixed; inset:var(--frame-gap);
+  background:#fff; border:1px solid var(--line);
+  display:none; z-index:10;
+  padding: clamp(16px, 4vw, 48px);
+  grid-template-rows:auto 1fr auto;
+}
+.result.show{ display:grid; animation: fadeIn .35s ease forwards; }
+.res-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+  border-bottom:1px solid var(--line); padding-bottom:12px;
+}
+.res-title{
+  font-weight:800; font-size: clamp(22px, 4.6vw, 40px);
+}
+.res-badge{
+  font-weight:800; font-size: clamp(18px, 4vw, 32px);
+  padding:6px 12px; border:2px solid var(--line); border-radius:10px;
+}
+.res-main{
+  display:grid; align-content:center; justify-items:center; text-align:center; gap:18px;
+}
+.level{
+  font-weight:800; font-size: clamp(32px, 8vw, 80px); letter-spacing:-0.02em;
+}
+.summary{
+  max-width:70ch; line-height:1.8; color:#333;
+  border-top:1px solid var(--line); padding-top:14px;
+  margin-bottom:20px;
+}
+.res-foot{
+  display:flex; gap:12px; justify-content:space-between; align-items:center;
+  border-top:1px solid var(--line); padding-top:12px;
+}
+.small{ color:#777; font-size:12px; }
+
+/* 게임 버튼을 결과 설명 아래 중앙에 배치 */
+.gamebtn{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:14px 24px; border-radius:12px; font-weight:800; font-size:16px;
+  background:#e60023; color:#fff; text-decoration:none;
+  border:1px solid var(--line); box-shadow:2px 2px 0 var(--line);
+  transition:transform .08s ease, box-shadow .2s ease;
+  margin:0 auto;
+}
+.gamebtn:active{ transform:translateY(1px); box-shadow:1px 1px 0 var(--line); }
+
+/* 다시 체크하기 버튼 스타일 */
+.again{ 
+  border:1px solid var(--line); padding:12px 18px; border-radius:12px; 
+  font-weight:800; font-size:14px; background:#fff; color:#000; cursor:pointer;
+  transition:transform .08s ease, background .2s ease, color .2s ease, box-shadow .2s ease;
+  text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
+}
+.again:hover{ background:#f5f5f5; box-shadow:2px 2px 0 var(--line); }
+.again:active{ transform:translateY(1px); }
+
+/* 애니메이션 */
+@keyframes fadeUp{ to{ opacity:1; transform:translateY(0) } }
+@keyframes fadeIn{ from{ opacity:0 } to{ opacity:1 } }
+
+/* 접근성 - 모션 축소 */
+@media (prefers-reduced-motion: reduce){
+  .q{ animation:none; opacity:1; transform:none }
+  .result.show{ animation:none }
+}
+
+/* 반응형 소조정 */
+@media (max-width:720px){
+  .scale .end{ min-width:auto; width:72px }
+  .res-foot{ flex-direction:column; align-items:stretch; gap:10px; }
+  .gamebtn{ width:100%; max-width:280px; }
+  .again{ width:100%; max-width:200px; margin:0 auto; }
+}
+</style>
+</head>
+<body>
+<div class="frame" aria-hidden="true"></div>
+
+<main class="wrap" id="app" aria-live="polite">
+  <div class="eng-title">ADHD TEST</div>
+
+  <header class="header">
+    <div class="title">성인 ADHD 체크리스트 테스트</div>
+    <div class="subtitle">이는 실제 병원에서 활용되는 체크리스트입니다.</div>
+  </header>
+
+  <!-- 질문들 -->
+  <section id="qs" class="qs" aria-label="질문 목록">
+    <!-- Q1 -->
+    <article class="q" style="animation-delay:.05s">
+      <div class="qlabel"><span>Q1.</span>어떤 일의 어려운 부분은 끝내놓고, 그 일을 마무리 짓지 못해서 곤란해진 일이 있나요?</div>
+      <div class="scale" data-q="1">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q1" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q1" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q1" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q1" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q1" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q2 -->
+    <article class="q" style="animation-delay:.1s">
+      <div class="qlabel"><span>Q2.</span>체계가 필요한 일을 해야 할 때, 순서대로 진행하기 어려운 경우가 있나요?</div>
+      <div class="scale" data-q="2">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q2" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q2" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q2" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q2" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q2" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q3 강조 -->
+    <article class="q emph" style="animation-delay:.15s">
+      <div class="qlabel"><span>Q3.</span>지금 이 체크리스트들도 사실 좀, <u>집중하기 힘든가요?</u></div>
+      <div class="binary" data-q="3">
+        <a class="binbtn" data-value="yes" href="game.html" target="_blank">그렇다</a>
+        <button type="button" class="binbtn" data-value="no">아니다</button>
+      </div>
+      <div class="meta-line"><span></span><span style="color:#000;font-weight:700">※ Q3은 분석에서 제외됩니다</span></div>
+    </article>
+
+    <!-- Q4 -->
+    <article class="q" style="animation-delay:.2s">
+      <div class="qlabel"><span>Q4.</span>약속이나 해야 할 일을 잊어버려 곤란을 겪은 일이 있나요?</div>
+      <div class="scale" data-q="4">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q4" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q4" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q4" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q4" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q4" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q5 -->
+    <article class="q" style="animation-delay:.25s">
+      <div class="qlabel"><span>Q5.</span>골치 아픈 일은 피하거나 미루는 경우가 있나요?</div>
+      <div class="scale" data-q="5">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q5" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q5" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q5" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q5" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q5" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q6 -->
+    <article class="q" style="animation-delay:.3s">
+      <div class="qlabel"><span>Q6.</span>오래 앉아있을 때, 손을 만지작거리거나 발을 꼼지락거리는 경우가 있나요?</div>
+      <div class="scale" data-q="6">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q6" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q6" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q6" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q6" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q6" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q7 -->
+    <article class="q" style="animation-delay:.35s">
+      <div class="qlabel"><span>Q7.</span>마치 모터가 달린 것처럼 과도하게 혹은 멈출 수 없이 활동을 하는 경우가 있나요?</div>
+      <div class="scale" data-q="7">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q7" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q7" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q7" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q7" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q7" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q8 -->
+    <article class="q" style="animation-delay:.4s">
+      <div class="qlabel"><span>Q8.</span>별로 상관 없는 광경이나 소리 때문에 쉽게 산만해지나요?</div>
+      <div class="scale" data-q="8">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q8" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q8" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q8" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q8" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q8" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q9 -->
+    <article class="q" style="animation-delay:.45s">
+      <div class="qlabel"><span>Q9.</span>다른 중요한 일을 잊고 시간 개념을 잃어버리곤 하나요?</div>
+      <div class="scale" data-q="9">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q9" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q9" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q9" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q9" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q9" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q10 -->
+    <article class="q" style="animation-delay:.5s">
+      <div class="qlabel"><span>Q10.</span>정리정돈을 잘 못하나요?</div>
+      <div class="scale" data-q="10">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q10" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q10" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q10" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q10" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q10" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+
+    <!-- Q11 -->
+    <article class="q" style="animation-delay:.55s">
+      <div class="qlabel"><span>Q11.</span>자주 다른 사람의 대화에 끼어드는 편인가요?</div>
+      <div class="scale" data-q="11">
+        <div class="end">전혀</div>
+        <div class="radios">
+          <label class="radio" data-pos="1"><input type="radio" name="q11" value="1"><span class="ring"></span></label>
+          <label class="radio" data-pos="2"><input type="radio" name="q11" value="2"><span class="ring"></span></label>
+          <label class="radio" data-pos="3"><input type="radio" name="q11" value="3"><span class="ring"></span></label>
+          <label class="radio" data-pos="4"><input type="radio" name="q11" value="4"><span class="ring"></span></label>
+          <label class="radio" data-pos="5"><input type="radio" name="q11" value="5"><span class="ring"></span></label>
+        </div>
+        <div class="end">매우 자주</div>
+      </div>
+    </article>
+  </section>
+
+  <!-- 제출 -->
+  <div class="footer">
+    <div class="actions">
+      <div class="hint">모든 문항에 응답하면 결과를 볼 수 있어요.</div>
+      <button id="submitBtn" class="btn primary" disabled>결과 확인</button>
+    </div>
+  </div>
+</main>
+
+<!-- 결과 화면 -->
+<section class="result" id="result" aria-modal="true" role="dialog">
+  <div class="res-head">
+    <div class="res-title">ADHD 자가점검 결과</div>
+    <div class="res-badge" id="resScore">총점 0 / 50</div>
+  </div>
+  <div class="res-main">
+    <div class="level" id="resLevel">LEVEL</div>
+    <div class="summary" id="resText">설명 텍스트</div>
+    <a href="game.html" target="_blank" class="gamebtn" role="link" aria-label="게임으로 ADHD 테스트">게임으로 ADHD 테스트</a>
+  </div>
+  <div class="res-foot">
+    <div class="small">※ 본 도구는 참고용이며, 공식적인 진단을 대체하지 않습니다. 증상이 지속되면 전문가 상담을 권합니다.</div>
+    <button class="again" id="againBtn">다시 체크하기</button>
+  </div>
+</section>
+
+<script>
+/* ====== 상태 ====== */
+const TOTAL_ITEMS = [1,2,4,5,6,7,8,9,10,11]; // Q3 제외
+const ALL_ITEMS = [1,2,3,4,5,6,7,8,9,10,11];
+const answers = {}; // { q1:1..5, q3:'yes'|'no', ... }
+
+/* ====== 유틸 ====== */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => [...document.querySelectorAll(sel)];
+
+/* ---- 안정성 향상: 모든 라디오 input에 직접 리스너 바인딩 ---- */
+function bindRadioListeners(){
+  const inputs = $$('input[type="radio"]');
+  inputs.forEach(inp=>{
+    const handler = ()=>{
+      const name = inp.name;               // "q1" ..
+      const val = parseInt(inp.value,10);  // 1..5
+      if(!isNaN(val)) {
+        answers[name] = val;
+        checkReady();
+      }
+    };
+    inp.addEventListener('change', handler);
+    inp.addEventListener('input', handler);
+    inp.addEventListener('click', handler);
+  });
+}
+bindRadioListeners();
+
+/* Q3 이진 버튼 */
+const q3Btns = $$('.binary .binbtn');
+q3Btns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    q3Btns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    answers['q3'] = btn.dataset.value; // yes | no
+    checkReady();
+    // '그렇다'는 링크로 이동 (기본 동작 유지)
+  });
+});
+
+/* 모든 응답 완료 여부 */
+function checkReady(){
+  const done = ALL_ITEMS.every(i => Object.prototype.hasOwnProperty.call(answers, `q${i}`));
+  $('#submitBtn').disabled = !done;
+}
+
+/* 점수 계산(Q3 제외, 10문항 최대 50점) */
+function computeScore(){
+  let sum = 0;
+  TOTAL_ITEMS.forEach(i => { sum += (answers[`q${i}`] || 0); });
+  return sum;
+}
+
+/* 레벨 결정 (자가체크용 가이드) */
+function toLevel(sum){
+  if(sum <= 14) return {level:'낮음', color:'#111', desc:'일상에서의 주의·충동 관련 어려움이 비교적 적게 보고되었습니다. 다만 특정 상황(과제 난이도, 수면/스트레스)에 따라 변동이 있을 수 있습니다.'};
+  if(sum <= 24) return {level:'경계', color:'#333', desc:'간헐적 어려움이 보고됩니다. 반복되거나 기능 손상이 느껴질 경우, 생활습관 조정(수면·운동·계획 수립)과 추가 평가가 도움이 될 수 있습니다.'};
+  if(sum <= 34) return {level:'중등도', color:'#e07a00', desc:'주의조절·조직화·충동 관련 어려움이 일상 기능에 영향을 줄 가능성이 있습니다. 임상 전문가와의 상담 및 구조화 전략(체크리스트, 시간관리)이 권장됩니다.'};
+  if(sum <= 44) return {level:'높음', color:'#e60023', desc:'여러 영역에서 지속적인 어려움이 보고됩니다. 전문 평가(진단 면담, 병력 청취, 보조 평정척도)를 권합니다.'};
+  return {level:'매우 높음', color:'#e60023', desc:'ADHD 관련 증상 수준이 매우 높게 보고됩니다. 가능한 한 가까운 시일 내 전문 의료진과의 상담을 권장합니다.'};
+}
+
+/* 결과 표시 */
+$('#submitBtn').addEventListener('click', ()=>{
+  const sum = computeScore();
+  const info = toLevel(sum);
+
+  $('#resScore').textContent = `총점 ${sum} / 50`;
+  $('#resLevel').textContent = `ADHD 레벨: ${info.level}`;
+  $('#resLevel').style.color = info.color;
+  $('#resText').innerHTML = `
+    <strong>요약</strong><br>${info.desc}
+    <br><br><strong>참고</strong><br>
+    · 본 결과는 Q3(체크리스트 집중 가능 여부)를 제외하고 산출되었습니다.<br>
+    · 필요한 경우, 업무/학업 환경 조정(알림·타이머·작업 쪼개기)과 행동 전략(보상·우선순위화)이 도움될 수 있습니다.
+  `;
+
+  $('#result').classList.add('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* 다시하기 */
+$('#againBtn').addEventListener('click', ()=>{
+  Object.keys(answers).forEach(k=> delete answers[k]);
+  $$('input[type="radio"]').forEach(i=> i.checked = false);
+  q3Btns.forEach(b=> b.classList.remove('active'));
+  $('#submitBtn').disabled = true;
+  $('#result').classList.remove('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* 초기 상태 체크 */
+checkReady();
+</script>
+</body>
+</html>
